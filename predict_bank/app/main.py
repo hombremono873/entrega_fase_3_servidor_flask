@@ -1,8 +1,9 @@
-from predict import hacer_prediccion  #Importo la función
+
+#from predict import hacer_prediccion  #Importo la función
 # ------------------------------------------------------------------------------
 # 4. Simulación: entrada como vendría desde producción
 # ------------------------------------------------------------------------------
-entrada = {
+"""entrada = {
     "age": 45,
     "job": "admin.",
     "marital": "married",
@@ -23,4 +24,4 @@ def main():
     print("Predicción:", prediccion)
     
 if __name__ == "__main__":
-    main()  
+    main()  """
