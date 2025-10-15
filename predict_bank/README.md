@@ -117,7 +117,7 @@ docker build -t predict_bank .
 # Para correr la API REST dentro de un contenedor Docker 
 # y montar la carpeta de datos externa al proyecto, utilice el siguiente comando:
 
-docker run -p 5001:5000 -v "C:/Users/OMAR TORRES/Desktop/taller_IA_fase3/datos:/app/datos" predict_bank
+docker run -p 5001:5000 predict_bank
 
 Para correr la API REST dentro de un contenedor Docker y montar la carpeta de datos externa, se utiliza el siguiente comando:
 ```

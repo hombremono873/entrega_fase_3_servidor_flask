@@ -23,6 +23,7 @@ RUN chmod 600 /root/.kaggle/kaggle.json
 
 # Crear carpeta de datos
 RUN mkdir -p /app/datos
+VOLUME ["/app/datos"]
 
 # --- Selecciona el modo de arranque ---
 # Modo interactivo (fase 1):
