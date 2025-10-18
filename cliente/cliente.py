@@ -1,14 +1,23 @@
 
-#import requests
-#import json
-#import os
-#import threading, itertools, time, sys
 import threading, itertools, time, sys, json, requests, os
-
-#API_URL = "http://localhost:5001"
-
+#---------------------------------------------------------------------------------------------------
+# URL base de la API.
+# Si existe la variable de entorno 'API_URL', se usa su valor.
+# Si no está definida, se usa por defecto "http://host.docker.internal:5001",
+# que permite al contenedor comunicarse con el servidor en el host (puerto 5001).
+#---------------------------------------------------------------------------------------------------
 API_URL = os.getenv("API_URL", "http://host.docker.internal:5001")
 
+#---------------------------------------------------------------------------------------------------
+# Al ejecutar la función entrenar_modelo(), se consume el endpoint train del 
+# servidor.
+# Inicia el proceso de entrenamiento del modelo en el servidor remoto.
+#    - Muestra un indicador animado (spinner) para tranquilizar el usuario
+#      mientras se ejecuta la petición POST a la ruta /train del API.
+#    - Utiliza la variable global API_URL como base para construir la URL.
+#    - Si la conexión falla, muestra un mensaje de error y detiene el spinner.
+#   - Al finalizar, imprime el estado del entrenamiento y la respuesta JSON del servidor.
+#---------------------------------------------------------------------------------------------------
 def entrenar_modelo():
     print("\nIniciando entrenamiento del modelo...")
     print("Por favor sea paciente, este proceso puede tardar algunos minutos.\n")
@@ -48,13 +57,22 @@ def entrenar_modelo():
     print("Resultados del entrenamiento:")
     print(r.json())
 
-
+#---------------------------------------------------------------------------------------------------
+# Al ejecutarse la función predecir_archivo(), se consume el endpoint /predict_file, 
+# Predict file es un endpoint que al ejecutarse prueba el modelo con los valores en test.csv
+# Se imprime en consola algunos de los resultados de la prueba.
+#---------------------------------------------------------------------------------------------------
+ 
 def predecir_archivo():
     print("\nEl proceso puede tardar unos segundos por favor espere ")
     r = requests.get(f"{API_URL}/predict_file")
     print("\nPredicción por archivo lista" if r.status_code == 200 else "Error")
     print(r.json())
-
+#---------------------------------------------------------------------------------------------------
+# Al ejecutarse predecir_nuno(), se consume el endpoint /predict_one.
+# Al modelo entrenado se le envía un json con una entrada de datos, previamente almacenada en data.json
+# Se imprime en consola el resultado de la predicción.
+# --------------------------------------------------------------------------------------------------  
 def predecir_uno():
     try: 
         print("\nEl proceso puede tardar unos segundos por favor espere ")
@@ -65,7 +83,11 @@ def predecir_uno():
         print(r.json())
     except FileNotFoundError:
         print("\nNo se encontró el archivo data.json en el contenedor.")
-        
+#---------------------------------------------------------------------------------------------------
+# Cuando el cliente se ejecuta, se muestra un sencillo menú con las opciones para hacer prediccione
+# si la opción es la 2, se permite ingresar datos de entrada para solicitar una predicción específica
+# El resultado de la prediccion se imprime en pantalla.
+#---------------------------------------------------------------------------------------------------        
 def predecir_dinamico():
     print("\n--- PREDICCIÓN INDIVIDUAL ---\n")
     print("1. Usar archivo data.json existente\n")
@@ -125,14 +147,16 @@ def predecir_dinamico():
     else:
         print(" Error al realizar la predicción.")
         print(r.json())
-
+#---------------------------------------------------------------------------------------------------
+# Cuando el cliente se ejecuta en el modo interactivo, se muestra un conjunto de opciones.
+#---------------------------------------------------------------------------------------------------
 def menu():
     while True:
         print("\n--- CLIENTE ML ---")
         print("1. Entrenar modelo")
-        print("2. Predecir archivo")
-        print("3. Predecir registro individual")
-        print("4. Predecir registro entrada dinámica")
+        print("2. Predecir usando test.csv para probar el modelo")
+        print("3. Predecir registro individual, entrada previamente configurada en json")
+        print("4. Predecir , entrada dinámica (usuario digita datos de entrada)")
         print("5. Salir")
 
         opcion = input("Seleccione una opción: ")

@@ -44,11 +44,9 @@ Para que el contenedor pueda descargar automáticamente los datos al momento de 
 3. Coloca `kaggle.json` **en la raíz del proyecto**, al mismo nivel del `Dockerfile`.  
    Ejemplo:
 
-
+```text
 taller_IA_fase3/
-├── datos/                          # Carpeta externa (inicialmente vacía, se llena al entrenar/predict)
-│
-└── predict_bank/                   # Proyecto principal
+├──  predict_bank/                   # Proyecto principal
     ├── app/                        # Código fuente principal
     │   ├── apirest.py              # API REST con endpoints (train, predict_file, predict_one)
     │   |     
@@ -56,18 +54,18 @@ taller_IA_fase3/
     │   └── train.py                # Lógica de entrenamiento
     │
     ├── .dockerignore               # Archivos a ignorar por Docker
-    |
+    ├──datos/ se llena con archivos generados en el train, si no existe se crea
     ├── Dockerfile                  # Imagen de Docker para la app
     ├── doker                       # (posible archivo auxiliar, revisar si es necesario)
     ├── kaggle.json                 # > Sin este archivo, el modelo no podrá descargar ni entrenar los datos.
     ├── prueba.txt                  # Archivo de prueba (auxiliar)
     ├── README.md                   # Documentación del proyecto
     └── requirements.txt            # Dependencias de Python
-
+```
 ---
 # Notas importantes
 
-La carpeta **`datos`** (externa al contenedor Docker) está diseñada para mantener todos los archivos generados durante la ejecución del proyecto.  
+La carpeta **`datos`** (externa al contenedor Docker) está diseñada para mantener todos los archivos generados durante la ejecución del proyecto. si no existe se crea en automático 
 
 1. El archivo **`kaggle.json`** debe ser actualizado por el profesor con un token válido de Kaggle.  
    Sin esta clave de acceso, el programa **no podrá descargar los datasets**.
@@ -117,7 +115,12 @@ docker build -t predict_bank .
 # Para correr la API REST dentro de un contenedor Docker 
 # y montar la carpeta de datos externa al proyecto, utilice el siguiente comando:
 
+# El siguiente comando ejecuta la imagen y coordina el dialogo entre puertos
 docker run -p 5001:5000 predict_bank
+
+# El siguiente comando ademas de coordinar puertos salva los datos generados en carpeta externa al
+# docker datos
+docker run -it --rm -v "%cd%\datos:/app/datos" -p 5001:5000 banco
 
 Para correr la API REST dentro de un contenedor Docker y montar la carpeta de datos externa, se utiliza el siguiente comando:
 ```

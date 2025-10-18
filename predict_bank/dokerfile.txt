@@ -1,12 +1,6 @@
 # Imagen base
 FROM python:3.11-slim
 
-# --- Variables globales ---
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    KAGGLE_CONFIG_DIR=/root/.kaggle
-
 # Directorio de trabajo
 WORKDIR /app
 
@@ -22,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar la aplicación
 COPY app/ ./app
 
+
 # Copiar credenciales de Kaggle
 COPY kaggle.json /root/.kaggle/kaggle.json
 RUN chmod 600 /root/.kaggle/kaggle.json
@@ -31,4 +26,8 @@ RUN mkdir -p /app/datos
 VOLUME ["/app/datos"]
 
 # --- Selecciona el modo de arranque ---
-CMD ["python", "-m", "app.apirest"]    
+# Modo interactivo (fase 1):
+# CMD ["bash"]
+
+# Modo servidor Flask (fase 2):
+CMD ["python", "-m", "app.apirest"]

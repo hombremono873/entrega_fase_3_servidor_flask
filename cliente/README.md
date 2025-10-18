@@ -26,7 +26,7 @@ Desde el menú, el usuario puede:
 3. Probar una predicción individual a partir de un registro JSON (`data.json`).
 
 ## Estructura del proyecto completo
-
+```text
 fase-3/
 ├── datos/ # Carpeta externa (inicialmente vacía)
 │ # Se llenará con datasets, modelo y resultados
@@ -44,7 +44,7 @@ fase-3/
 ├── cliente.py # Menú interactivo para consumir la API
 ├── Dockerfile # Imagen del cliente
 └── README_cliente.md # Documentación del cliente
-
+```
 ---
 
 ##  Construcción de la imagen Docker
