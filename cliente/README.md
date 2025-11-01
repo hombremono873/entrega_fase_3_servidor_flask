@@ -166,7 +166,7 @@ parar todos los docker
 
 for /f "tokens=*" %i in ('docker ps -aq') do docker rm -f %i
 ```
-
+---
 Autor
 
 Omar Alberto Torres
