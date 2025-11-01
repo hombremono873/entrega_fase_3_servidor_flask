@@ -11,11 +11,9 @@ Este proyecto implementa un flujo completo de Machine Learning orientado a la pr
 La aplicación está contenedorizada con Docker y expone una API REST desarrollada en Flask, que permite interactuar con el modelo de manera sencilla y automatizada.
 A través de esta API, el usuario puede:
 
-Entrenar el modelo a partir del conjunto de datos de Kaggle.
-
-Probar el modelo utilizando el archivo test.csv.
-
-Realizar una predicción individual enviando un registro en formato JSON.
+1. Entrenar el modelo a partir del conjunto de datos de Kaggle.
+2. Probar el modelo utilizando el archivo test.csv.
+3. Realizar una predicción individual enviando un registro en formato JSON.
 
 El uso de Docker garantiza un entorno reproducible, limpio y portátil, facilitando la ejecución del sistema en cualquier entorno sin conflictos de dependencias.
 
@@ -36,7 +34,9 @@ Para que el contenedor pueda descargar automáticamente los datos al momento de 
 3. Coloca `kaggle.json` **en la raíz del proyecto**, al mismo nivel del `Dockerfile`.  
    
 ---
+**Estructura del proyecto**
 ```text
+
 taller_IA_fase3/
 ├──  predict_bank/                   # Proyecto principal
     ├── app/                        # Código fuente principal

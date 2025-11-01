@@ -15,17 +15,30 @@ Noviembre 23 de 2025
 
 ---
 
-## Descripción del proyecto
+Este proyecto complementa la API principal Predict Bank, desarrollada con Flask, mediante la incorporación de un cliente Python interactivo que se ejecuta dentro de su propio contenedor Docker.
 
-Este proyecto complementa la API Flask principal (*Predict Bank*) con un **cliente Python** ejecutado dentro de su propio contenedor Docker.  
-El cliente permite interactuar con la API de predicción a través de un **menú en consola**, sin necesidad de Postman u otras herramientas externas.  
-Desde el menú, el usuario puede:
+El cliente actúa como una interfaz de consola que permite interactuar con la API REST de predicción de manera sencilla, sin necesidad de herramientas externas como Postman o cURL.
 
-1. Entrenar el modelo de Machine Learning.
-2. Ejecutar predicciones por archivo (`test.csv`).
-3. Probar una predicción individual a partir de un registro JSON (`data.json`).
+A través de un menú intuitivo, el usuario puede:
 
+1. Entrenar el modelo de Machine Learning, activando el endpoint /train y generando el archivo modelo_entrenado.pkl.
+2. Ejecutar predicciones por archivo, usando el endpoint /predict_file con los datos de test.csv.
+
+3. Realizar predicciones individuales, consumiendo el endpoint /predict_one a partir de un registro JSON (data.json) o ingresando los datos manualmente.
+
+De esta manera, el cliente y la API trabajan de forma conjunta para ofrecer un entorno modular, automatizado y reproducible, ideal para pruebas, demostraciones o despliegues controlados en Docker.
+
+---
 ## Estructura del proyecto completo
+
+El sistema se organiza en dos contenedores principales que trabajan de forma complementaria:
+
+**predict_bank/** , Contiene el servidor Flask (API REST) donde se entrena y ejecuta el modelo de Machine Learning.
+
+**cliente/** , Incluye el cliente Python interactivo, que permite consumir los endpoints de la API desde la consola.
+
+La carpeta raíz **fase-3/** sirve como entorno de trabajo, e incluye además una carpeta datos/ compartida entre ambos contenedores para almacenar datasets, modelos y resultados.
+
 ```text
 fase-3/
 ├── datos/ # Carpeta externa (inicialmente vacía)
@@ -46,20 +59,70 @@ fase-3/
 └── README_cliente.md # Documentación del cliente
 ```
 ---
+## Arquitectura del sistema
+El sistema se compone de dos contenedores Docker complementarios, diseñados para separar las responsabilidades entre el entrenamiento del modelo y la interacción del usuario.
 
+**predict_bank/** Contiene el servidor Flask (API REST), responsable de entrenar el modelo de Machine Learning, procesar las predicciones y exponer los endpoints /train, /predict_file y /predict_one.
+
+**cliente/ ** Incluye el cliente Python interactivo, encargado de consumir la API REST mediante un menú en consola que permite al usuario entrenar el modelo, generar predicciones o probar entradas manuales.
+
+La carpeta **raíz fase-3/** actúa como entorno principal del proyecto e incluye una carpeta datos/ compartida entre ambos contenedores, donde se almacenan los archivos generados durante el proceso:
+
+**train.csv** ,**test.csv** datasets descargados desde Kaggle
+
+**modelo_entrenado.pkl** modelo serializado tras el entrenamiento
+
+**predicciones.csv**, **predicciones.txt** ,resultados generados durante las pruebas
+
+---
+## Ejecución en modo interactivo
+
+El cliente Python (cliente.py) se ejecuta en modo interactivo dentro de su contenedor, iniciando un menú de opciones en consola.
+Desde este menú, el usuario puede seleccionar la acción que desea realizar:
+
+**--- CLIENTE ML ---**
+
+1. Entrenar modelo
+2. Predecir usando test.csv para probar el modelo
+3. Predecir registro individual (usando data.json)
+4. Predecir con entrada dinámica (el usuario digita los datos)
+5. Salir
+**Seleccione una opción:**
+
+Cada opción del menú invoca internamente una función que se comunica con el servidor Flask a través de solicitudes HTTP (requests.post o requests.get), mostrando los resultados directamente en la terminal.
+
+Cada opción corresponde a una acción sobre la API REST:
+
+**Opcion 1**
+Entrena el modelo de Machine Learning: POST /train
+
+**Opcion 2**
+Genera predicciones masivas desde test.csv (prueba del modelo): GET /predict_file
+
+**Opcion 3**
+Realiza una predicción individual a partir de un archivo JSON (data.json): POST /predict_one
+
+**Opcion 4**
+Permite ingresar los datos manualmente desde consola y envía la solicitud dinámica al modelo: POST /predict_one
+
+**Opcion 5**
+Finañliza la ejecución del cliente
+
+---
 ##  Construcción de la imagen Docker
 
 Ubíquese en la raíz del proyecto del cliente (donde se encuentra el archivo `Dockerfile`) y ejecute el siguiente comando:
 
-```bash
 # Imagen
+```bash
 docker build -t predict_bank_client .
-
+```
 
 # ejecutando el cliente
 Para ejecutar el cliente en modo interactivo, use
-
+```bash
 docker run -it --rm predict_bank_client
+```
 
 Debe salir un menu como el siguiente:
 --- CLIENTE ML ---
