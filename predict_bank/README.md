@@ -6,14 +6,20 @@
 > **Fecha de entrega:** 23 de noviembre de 2025
 
 ## Resumen
-Este proyecto implementa un flujo completo de *Machine Learning* para predecir resultados en actividades bancarias.  
-La solución está **contenedorizada con Docker** y expone una **API REST con Flask** para:
-- Entrenar el modelo
-- Probar el modelo con `test.csv`
-- Obtener la predicción de un único registro enviado como JSON
+Este proyecto implementa un flujo completo de Machine Learning orientado a la predicción de resultados en campañas bancarias mediante un modelo Random Forest.
 
-El uso de Docker garantiza un entorno **limpio, reproducible y portable**.
+La aplicación está contenedorizada con Docker y expone una API REST desarrollada en Flask, que permite interactuar con el modelo de manera sencilla y automatizada.
+A través de esta API, el usuario puede:
 
+Entrenar el modelo a partir del conjunto de datos de Kaggle.
+
+Probar el modelo utilizando el archivo test.csv.
+
+Realizar una predicción individual enviando un registro en formato JSON.
+
+El uso de Docker garantiza un entorno reproducible, limpio y portátil, facilitando la ejecución del sistema en cualquier entorno sin conflictos de dependencias.
+
+---
 ## Endpoints (vista general)
 - `POST /train`  
   Entrena el modelo desde cero (descarga los datos de Kaggle si no existen), calcula métricas y **serializa el modelo** en `datos/modelo_entrenado.pkl`.  
@@ -120,7 +126,7 @@ docker run -p 5001:5000 predict_bank
 
 # El siguiente comando ademas de coordinar puertos salva los datos generados en carpeta externa al
 # docker datos
-docker run -it --rm -v "%cd%\datos:/app/datos" -p 5001:5000 banco
+docker run -it --rm -v "%cd%\datos:/app/datos" -p 5001:5000 predict_bank
 
 Para correr la API REST dentro de un contenedor Docker y montar la carpeta de datos externa, se utiliza el siguiente comando:
 ```
