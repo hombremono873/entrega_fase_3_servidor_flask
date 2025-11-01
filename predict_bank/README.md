@@ -20,24 +20,10 @@ Realizar una predicción individual enviando un registro en formato JSON.
 El uso de Docker garantiza un entorno reproducible, limpio y portátil, facilitando la ejecución del sistema en cualquier entorno sin conflictos de dependencias.
 
 ---
-## Endpoints (vista general)
-- `POST /train`  
-  Entrena el modelo desde cero (descarga los datos de Kaggle si no existen), calcula métricas y **serializa el modelo** en `datos/modelo_entrenado.pkl`.  
-  **Salida:** `{ mensaje, metrics }`
-
-- `GET /predict_file`  
-  Carga el modelo entrenado y genera predicciones para `datos/test.csv`.  
-  **Salida:** `{ mensaje, preview }` y archivos `datos/predicciones.txt` y `datos/predicciones.csv`.
-
-- `POST /predict_one`  
-  Recibe un **JSON** con un registro, aplica el mismo preprocesamiento y retorna la predicción y su probabilidad.  
-  **Entrada (JSON):** campos del dataset (excepto los eliminados en preprocesamiento)  
-  **Salida:** `{ pred, proba }`
-
----
-## Acceso a los datos de Kaggle
+**Acceso a los datos de Kaggle**
 
 El proyecto utiliza los datasets de la competencia **[Playground Series – Season 5, Episode 8](https://www.kaggle.com/competitions/playground-series-s5e8/overview)**.  
+
 Para que el contenedor pueda descargar automáticamente los datos al momento de entrenar el modelo, es necesario configurar tus credenciales de Kaggle.
 
 ### Pasos para configurar el acceso
@@ -48,8 +34,8 @@ Para que el contenedor pueda descargar automáticamente los datos al momento de 
    **Account → Create New API Token**  
    Esto descargará un archivo llamado `kaggle.json`.
 3. Coloca `kaggle.json` **en la raíz del proyecto**, al mismo nivel del `Dockerfile`.  
-   Ejemplo:
-
+   
+---
 ```text
 taller_IA_fase3/
 ├──  predict_bank/                   # Proyecto principal
@@ -69,6 +55,96 @@ taller_IA_fase3/
     └── requirements.txt            # Dependencias de Python
 ```
 ---
+## Endpoints de la API 
+## /train — Entrenamiento del modelo
+
+**Método: POST**
+Descripción:
+Descarga los datos desde Kaggle (si no existen localmente), ejecuta el flujo de entrenamiento completo, evalúa el modelo y guarda el archivo modelo_entrenado.pkl dentro del contenedor (/app/datos).
+
+**Flujo interno:**
+
+1. Descarga o verifica los datasets (train.csv, test.csv, sample_submission.csv).
+2. Limpia los datos eliminando columnas innecesarias (id, day, month, duration).
+3. Codifica las variables categóricas con LabelEncoder.
+4. Entrena un modelo RandomForestClassifier.
+5. Calcula métricas (Accuracy, F1-Score, AUC).
+6. Guarda el modelo en disco.
+
+**Respuesta exitosa (200):**
+
+```bash
+{
+  "mensaje": "Entrenamiento completado",
+  "metrics": {
+    "accuracy": 0.912,
+    "f1_score": 0.87,
+    "auc": 0.935
+  }
+}
+```
+---
+## /predict_file — Predicción desde archivo CSV
+Método: GET
+Descripción:
+Carga el modelo entrenado y el archivo test.csv ubicado en /app/datos.
+Genera las predicciones y guarda los resultados en:
+
+/app/datos/predicciones.txt
+
+**Flujo interno:**
+
+1. Carga el modelo modelo_entrenado.pkl.
+2. Lee el archivo test.csv.
+3. Limpia y codifica las variables.
+4. Realiza las predicciones (y_pred).
+5. Guarda los resultados en formato texto y CSV.
+
+**Respuesta exitosa (200):**
+ ```bash
+{
+  "mensaje": "Predicción realizada con éxito",
+  "preview": [
+    {"id": 1, "y": 0},
+    {"id": 2, "y": 1},
+    {"id": 3, "y": 0}
+  ]
+}
+ ```
+---
+## /predict_one — Predicción individual con JSON
+
+**Método: POST**
+Descripción:
+Permite realizar una predicción para un solo registro recibido en formato JSON.
+
+**Entrada esperada:**
+
+```bash
+{
+  "age": 45,
+  "job": "admin.",
+  "marital": "married",
+  "education": "secondary",
+  "balance": 1200,
+  "housing": "yes",
+  "loan": "no",
+  "campaign": 3,
+  "pdays": 999,
+  "previous": 0,
+  "poutcome": "unknown"
+}
+
+```
+**Respuesta exitosa (200):**
+```bash
+{
+  "pred": 1,
+  "proba": 0.84
+}
+
+```
+---
 # Notas importantes
 
 La carpeta **`datos`** (externa al contenedor Docker) está diseñada para mantener todos los archivos generados durante la ejecución del proyecto. si no existe se crea en automático 
@@ -84,7 +160,6 @@ La carpeta **`datos`** (externa al contenedor Docker) está diseñada para mante
 
 5. En caso de ser necesario, puedo suministrar mi archivo `kaggle.json` con las credenciales configuradas para facilitar la ejecución.
 
-      
 ---
 ## Ejecución del proyecto
 
@@ -94,46 +169,46 @@ La carpeta **`datos`** (externa al contenedor Docker) está diseñada para mante
 2. Abra una terminal (**CMD** o **PowerShell**) en su sistema.  
 3. Ubíquese en la **raíz del proyecto `predict_bank`**, es decir, en el mismo nivel donde se encuentra el archivo **`Dockerfile`**.
 
-   **Ejemplo (en Windows):**
-   ```bash
-   cd C:\Users\OMAR TORRES\Desktop\taller_IA_fase3\predict_bank
+**Ejemplo (en Windows):**
 
 ```bash
+   cd C:\Users\OMAR TORRES\Desktop\taller_IA_fase3\predict_bank
+```
 
 ---
-
 ## Construcción de la imagen Docker
 
-```bash
-## Construcción de la imagen Docker
-# Ubíquese en la raíz del proyecto, a la altura del archivo Dockerfile. 
-# Por ejemplo (en mi caso):
-cd C:\Users\OMAR TORRES\Desktop\taller_IA_fase3\predict_bank
+1. Ubíquese en la raíz del proyecto, a la altura del archivo Dockerfile. 
+2. Por ejemplo (en mi caso): cd C:\Users\OMAR TORRES\Desktop\taller_IA_fase3\predict_bank
 
 # Construir la imagen Docker
+```bash
 docker build -t predict_bank .
 
 ```
-## Ejecución del contenedor Docker
+---
 ## Ejecución del contenedor Docker
 
-```bash
-# Para correr la API REST dentro de un contenedor Docker 
-# y montar la carpeta de datos externa al proyecto, utilice el siguiente comando:
+1. Para correr la API REST dentro de un contenedor Docker 
+2. y montar la carpeta de datos externa al proyecto, utilice el siguiente comando:
 
 # El siguiente comando ejecuta la imagen y coordina el dialogo entre puertos
+```bash
 docker run -p 5001:5000 predict_bank
-
-# El siguiente comando ademas de coordinar puertos salva los datos generados en carpeta externa al
-# docker datos
-docker run -it --rm -v "%cd%\datos:/app/datos" -p 5001:5000 predict_bank
+```
+---
 
 Para correr la API REST dentro de un contenedor Docker y montar la carpeta de datos externa, se utiliza el siguiente comando:
+```bash
+docker run -it --rm -v "%cd%\datos:/app/datos" -p 5001:5000 predict_bank
 ```
+---
+
 El comando anterior ejecuta el contenedor a partir de la imagen predict_bank,
 expone el puerto 5000 del contenedor en el puerto 5001 de tu máquina local,
 y monta la carpeta datos como volumen compartido entre tu sistema y el contenedor,
 permitiendo guardar los modelos y resultados fuera del entorno Docker.
+
 ---
 
 ## Eliminación y administración rápida de Docker
@@ -160,50 +235,36 @@ En mi caso, la ruta del volumen de datos es:
 **"C:/Users/OMAR TORRES/Desktop/taller_IA_fase3/datos"**.  
 La carpeta **datos** es externa al proyecto Docker y se usa para **guardar el modelo entrenado** y las **predicciones** durante las pruebas.
 
-### Endpoints disponibles
-1. **POST /train**  
-   Entrena el modelo (descarga los datasets de Kaggle si no existen) y guarda `modelo_entrenado.pkl` en `datos/`.
-
-2. **GET /predict_file**  
-   Usa `datos/test.csv` y genera `predicciones.txt` y `predicciones.csv` en `datos/`.
-
-3. **POST /predict_one**  
-   Recibe un JSON con un registro y retorna `{ "pred": int, "proba": float }`.
+---
+# Nota 1 muy importante
+Los endpoints pueden ser ejecutados con postman o usando la aplicacion cliente.py que corre en un contenedor
+independiente.
 
 **Pruebas con Postman**
+```bash
 - http://localhost:5001/train  
 - http://localhost:5001/predict_file  
 - http://localhost:5001/predict_one
+```
+---
 
-> Ejemplo rápido (predict_one):
-> ```json
-```json
-{
-  "age": 42,
-  "job": "admin.",
-  "marital": "married",
-  "education": "secondary",
-  "default": "no",
-  "balance": 500,
-  "housing": "yes",
-  "loan": "no",
-  "contact": "cellular",
-  "campaign": 1,
-  "pdays": 999,
-  "previous": 0,
-  "poutcome": "unknown"
-}
-> ```
-## Uso del cliente Python (`cliente.py`)
+## Uso del cliente Python (cliente.py)
 
-Además de Postman, el proyecto incluye un cliente en Python llamado **`cliente.py`**,  
-que permite interactuar fácilmente con la API REST directamente desde la línea de comandos.  
-el cliente está diseñado para consumir los mismos endpoints que el servidor Flask.
+Además de herramientas como Postman o cURL, el proyecto incluye un script auxiliar llamado cliente.py,
+que permite interactuar directamente con la API REST desde la línea de comandos utilizando Python.
 
-### Ejecución
+Este cliente fue diseñado para consumir los tres endpoints principales expuestos por el servidor Flask:
+
+1. /train → Entrena el modelo.
+2. /predict_file → Genera predicciones a partir del archivo test.csv.
+3. /predict_one → Realiza una predicción individual enviando un registro en formato JSON.
+
+El propósito del cliente es automatizar las pruebas de la API y facilitar el trabajo con los endpoints sin necesidad de herramientas externas.
+
+### Nota 2
 
 Asegúrese de que el contenedor Docker esté corriendo (la API activa en el puerto **5001**)  
-
+---
 ## Contacto
 Omar Alberto Torres  
 Tel: 304 344 0112  
